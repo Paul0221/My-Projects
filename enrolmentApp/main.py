@@ -49,26 +49,35 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
     else:
         sub_other_flag = False
 
+    # First check to see if there's any mandatory subjects that applicants must have studied for their chosen course
+
+    cursor.execute("SELECT IFNULL(req_subject_one, 'None') AS req_subject_one "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_one_check = cursor.fetchall()
+
+    cursor.execute("SELECT IFNULL(req_subject_two, 'None') AS req_subject_two "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_two_check = cursor.fetchall()
+
+    cursor.execute("SELECT req_sub_one_grade "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_one_grade = cursor.fetchall()
+
+    cursor.execute("SELECT req_sub_two_grade "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_two_grade = cursor.fetchall()
+
+
     if (first_name is not None and last_name is not None and email_address is not None
             and select_uni is not None and select_course is not None and first_subject is not None
             and first_grade is not None and second_subject is not None and second_grade is not None
             and third_subject is not None and third_grade is not None and personal_statement is not None):
 
-        # First check to see if there's any mandatory subjects that applicants must have studied for their chosen course
-
-        cursor.execute("SELECT IFNULL(req_subject_one, 'None') AS req_subject_one "
-                       " FROM sys.uni_courses "
-                       "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
-        req_sub_one_check = cursor.fetchall()
-        cursor.execute("SELECT IFNULL(req_subject_two, 'None') AS req_subject_two "
-                       " FROM sys.uni_courses "
-                       "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
-        req_sub_two_check = cursor.fetchall()
         if req_sub_one_check != "None":
-            cursor.execute("SELECT req_sub_one_grade "
-                           " FROM sys.uni_courses "
-                           "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
-            req_sub_one_grade = cursor.fetchall()
 
             req_one_grad_idx = possible_grades.index(req_sub_one_grade)
 
@@ -129,10 +138,6 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
                 sub_other_flag = True
 
         elif req_sub_two_check != "None" and grade_score != -1:
-            cursor.execute("SELECT req_sub_two_grade "
-                           " FROM sys.uni_courses "
-                           "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
-            req_sub_two_grade = cursor.fetchall()
 
             req_two_grad_idx = possible_grades.index(req_sub_two_grade)
 
@@ -192,6 +197,98 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                 sub_other_flag = True
 
+            while sub_one_flag == False or sub_two_flag == False or sub_three_flag == False or sub_other_flag == False:
+                if sub_one_flag == False:
+
+                    cursor.execute("SELECT IFNULL(req_grade_one, 'Checked') AS req_grade_one "
+                                   " FROM sys.uni_courses "
+                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_one != %s OR req_grade_one != %s)",
+                                   (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
+                    req_grade_one = cursor.fetchall()
+
+                    if req_grade_one != "Checked":
+
+                        req_grade_one_idx = possible_grades.index(req_grade_one)
+
+                        first_grade_idx = possible_grades.index(first_grade)
+
+                        if first_grade_idx == req_grade_one_idx:
+                            grade_score += 1
+                        elif first_grade_idx < req_grade_one_idx:
+                            grade_score += (req_grade_one_idx + 1) - (first_grade_idx + 1)
+                        else:
+                            grade_score += -1 # add -1 rather than setting it to automatically be rejected
+
+                    sub_one_flag = True
+
+                elif sub_two_flag == False:
+
+                    cursor.execute("SELECT IFNULL(req_grade_two, 'Checked') AS req_grade_two "
+                                   " FROM sys.uni_courses "
+                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_two != %s OR req_grade_two != %s)",
+                                   (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
+                    req_grade_two = cursor.fetchall()
+
+                    if req_grade_two != "Checked":
+
+                        req_grade_two_idx = possible_grades.index(req_grade_two)
+
+                        second_grade_idx = possible_grades.index(second_grade)
+
+                        if second_grade_idx == req_grade_two_idx:
+                            grade_score += 1
+                        elif second_grade_idx < req_grade_two_idx:
+                            grade_score += (req_grade_two_idx + 1) - (second_grade_idx + 1)
+                        else:
+                            grade_score += -1
+
+                    sub_two_flag = True
+
+                elif sub_three_flag == False:
+
+                    cursor.execute("SELECT IFNULL(req_grade_three, 'Checked') AS req_grade_three "
+                                   " FROM sys.uni_courses "
+                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_three != %s OR req_grade_three != %s)",
+                                   (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
+                    req_grade_three = cursor.fetchall()
+
+                    if req_grade_three != "Checked":
+
+                        req_grade_three_idx = possible_grades.index(req_grade_three)
+
+                        third_grade_idx = possible_grades.index(third_grade)
+
+                        if third_grade_idx == req_grade_three_idx:
+                            grade_score += 1
+                        elif third_grade_idx < req_grade_three_idx:
+                            grade_score += (req_grade_three_idx + 1) - (third_grade_idx + 1)
+                        else:
+                            grade_score += -1
+
+                    sub_three_flag = True
+
+                else:
+
+                    cursor.execute("SELECT IFNULL(req_grade_four, 'Checked') AS req_grade_four "
+                                   " FROM sys.uni_courses "
+                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_four != %s OR req_grade_four != %s)",
+                                   (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
+                    req_grade_four = cursor.fetchall()
+
+                    if req_grade_four != "Checked":
+
+                        req_grade_four_idx = possible_grades.index(req_grade_four)
+
+                        other_grade_idx = possible_grades.index(other_grade)
+
+                        if other_grade_idx == req_grade_four_idx:
+                            grade_score += 1
+                        elif other_grade_idx < req_grade_four_idx:
+                            grade_score += (req_grade_four_idx + 1) - (other_grade_idx + 1)
+                        else:
+                            grade_score += -1
+
+                    sub_other_flag = True
 
         cursor.close()
 
