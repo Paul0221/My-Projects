@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Course selection</title>
+</head>
+<body>
+    <h2> Please select the university and course you wish to amend. </h2>
+    <form method="post" action="/submit_course_selection">
+        {{ select_uni | safe}}<br> <br>
+        {{ select_course | safe}} <br> <br>
+        <button type="submit"> Submit application </button>
+    </form>
+</body>
+</html>

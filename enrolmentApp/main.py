@@ -2,11 +2,31 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+<<<<<<< HEAD
+=======
+import mysql.connector
+from enrolmentApp.config import DB_CONFIG
+from pydantic import BaseModel
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from typing import Optional
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import string
+from rake_nltk import Rake
+
+#nltk.download()
+>>>>>>> 1412968 (Test of rake_nltk able to process sample statement into keyphrases)
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
+<<<<<<< HEAD
+=======
+conn = mysql.connector.connect(**DB_CONFIG)
+
+>>>>>>> 1412968 (Test of rake_nltk able to process sample statement into keyphrases)
 @app.get("/")
 <<<<<<< HEAD
 async def root():
@@ -25,6 +45,7 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
                              third_subject: str = Form(...), third_grade: str = Form(...),
                              other_subject: Optional[str] = Form(None), other_grade: Optional[str] = Form(None),
                              personal_statement: str = Form(...)):
+    cursor = conn.cursor()
 
     print("First name = " + first_name + "\n")
     print("Last name = " + last_name + "\n")
@@ -53,22 +74,22 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
     cursor.execute("SELECT IFNULL(req_subject_one, 'None') AS req_subject_one "
                    " FROM sys.uni_courses "
-                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+                   "WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
     req_sub_one_check = cursor.fetchall()
 
     cursor.execute("SELECT IFNULL(req_subject_two, 'None') AS req_subject_two "
                    " FROM sys.uni_courses "
-                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+                   "WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
     req_sub_two_check = cursor.fetchall()
 
     cursor.execute("SELECT req_sub_one_grade "
                    " FROM sys.uni_courses "
-                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+                   "WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
     req_sub_one_grade = cursor.fetchall()
 
     cursor.execute("SELECT req_sub_two_grade "
                    " FROM sys.uni_courses "
-                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+                   "WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
     req_sub_two_grade = cursor.fetchall()
 
 
@@ -202,7 +223,7 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                     cursor.execute("SELECT IFNULL(req_grade_one, 'Checked') AS req_grade_one "
                                    " FROM sys.uni_courses "
-                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_one != %s OR req_grade_one != %s)",
+                                   "WHERE uni_id = %i AND course_id = %i AND (req_grade_one != %s OR req_grade_one != %s)",
                                    (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
                     req_grade_one = cursor.fetchall()
 
@@ -225,7 +246,7 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                     cursor.execute("SELECT IFNULL(req_grade_two, 'Checked') AS req_grade_two "
                                    " FROM sys.uni_courses "
-                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_two != %s OR req_grade_two != %s)",
+                                   "WHERE uni_id = %i AND course_id = %i AND (req_grade_two != %s OR req_grade_two != %s)",
                                    (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
                     req_grade_two = cursor.fetchall()
 
@@ -248,7 +269,7 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                     cursor.execute("SELECT IFNULL(req_grade_three, 'Checked') AS req_grade_three "
                                    " FROM sys.uni_courses "
-                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_three != %s OR req_grade_three != %s)",
+                                   "WHERE uni_id = %i AND course_id = %i AND (req_grade_three != %s OR req_grade_three != %s)",
                                    (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
                     req_grade_three = cursor.fetchall()
 
@@ -271,7 +292,7 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                     cursor.execute("SELECT IFNULL(req_grade_four, 'Checked') AS req_grade_four "
                                    " FROM sys.uni_courses "
-                                   "WHERE uni_id = %s AND course_id = %s AND (req_grade_four != %s OR req_grade_four != %s)",
+                                   "WHERE uni_id = %i AND course_id = %i AND (req_grade_four != %s OR req_grade_four != %s)",
                                    (select_uni, select_course, req_sub_one_grade, req_sub_two_grade))
                     req_grade_four = cursor.fetchall()
 
@@ -314,6 +335,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
 @app.get("/upload_application", response_class=HTMLResponse)
 async def upload_application(request: Request):
+    cursor = conn.cursor()
+
     cursor.execute("SELECT id, university_name FROM sys.universities")
     uni_list = cursor.fetchall()
     cursor.execute("SELECT id, CONCAT(qualification_code, ' ', course_name) FROM sys.courses")
@@ -346,7 +369,9 @@ async def upload_application(request: Request):
 
 
 @app.post("/submit_sign_in")
-async def submit_sign_in(username: str = Form(...), password: str = Form(...)):
+async def submit_sign_in(request: Request, username: str = Form(...), password: str = Form(...)):
+    cursor = conn.cursor()
+
     if username is None:
         raise HTTPException(status_code=400, detail="Username is null when it should not")
     if password is None:
@@ -355,13 +380,13 @@ async def submit_sign_in(username: str = Form(...), password: str = Form(...)):
     print("Entered post for /submit_sign_in")
     print("username = " + username)
     print("password = " + password)
-    cursor.execute("SELECT user_name, user_password FROM sys.users WHERE user_name = 'admin' AND user_password = %s)",
-                   (username, password))
+    cursor.execute("SELECT user_name, user_password FROM sys.users WHERE user_name = 'admin' AND user_password = %s", (password,))
     current_user = cursor.fetchone()
     cursor.close()
     if not current_user:
         raise HTTPException(status_code=402, detail="Incorrect login details, please try again.")
     else:
+<<<<<<< HEAD
         return RedirectResponse(url='/', status_code=302)  # redirect to admissions main screen
 >>>>>>> 8aed0c1 (Completed checks for required subject grades)
 
@@ -369,3 +394,137 @@ async def submit_sign_in(username: str = Form(...), password: str = Form(...)):
 @app.get("/hello/{name}")
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
+=======
+        return templates.TemplateResponse(request=request, name="admin_home.html")  # redirect to admissions main screen
+
+
+@app.get("/sign_in", response_class=HTMLResponse)
+async def sign_in(request: Request):
+    return templates.TemplateResponse(request=request, name="sign_in.html")
+
+
+@app.get("/course_selection", response_class=HTMLResponse)
+async def course_selection(request: Request):
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, university_name FROM sys.universities")
+    uni_list = cursor.fetchall()
+    cursor.execute("SELECT id, CONCAT(qualification_code, ' ', course_name) FROM sys.courses")
+    course_list = cursor.fetchall()
+    uni_options = "<option value=''> Select a university:</option>"
+    course_options = "<option value=''> Select a course:</option>"
+    for name in uni_list:
+        uni_options += f"<option value='{name[0]}'>{name[1]}</option>"
+    for course in course_list:
+        course_options += f"<option value='{course[0]}'>{course[1]}</option>"
+
+    select_uni = f"""
+    <select name="select_uni" id="select_uni" required>
+        {uni_options}
+    </select>
+    """
+
+    select_course = f"""
+    <select name="select_course" id="select_course" required>
+        {course_options}
+    </select>
+    """
+
+    cursor.close()
+    return templates.TemplateResponse("course_selection.html", {"request": request, "select_uni": select_uni,
+                                                                "select_course": select_course})
+
+@app.post("/submit_course_selection")
+async def submit_course_selection(select_uni: str = Form(...), select_course: str = Form(...)):
+    ''' cursor = conn.cursor()
+
+    print("Uni choice = " + select_uni + "\n")
+    print("Course choice = " + select_course + "\n")
+
+    cursor.execute("SELECT id FROM sys.uni_courses WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
+    selected_course = cursor.fetchone()
+
+    cursor.execute("SELECT IFNULL(id, -1) FROM sys.uni_course_keyterms WHERE uni_course_id = %i", selected_course)
+    keyterms_id = cursor.fetchone()
+
+    if keyterms_id != -1:
+        cursor.execute("SELECT keyterms FROM sys.uni_course_keyterms WHERE id = %i", keyterms_id)
+        keyterms = cursor.fetchall()
+
+
+
+    # cursor.execute("SELECT id, university_name FROM sys.universities")
+    # uni_list = cursor.fetchall()
+
+
+    # if select_uni is not None and select_course is not None:
+
+
+
+       #  cursor.close()
+
+    '''
+
+    nltk.download('punkt')
+    nltk.download('stopwords')
+
+    test_keywords = """\
+    skilled programmer
+    creative thinker
+    problem solving
+    algorithm design
+    collaborative
+    """
+
+    keyword_array = test_keywords.splitlines()
+
+    print("Line 1:", keyword_array[0])
+    print("Line 2:", keyword_array[1])
+    print("Line 3:", keyword_array[2])
+    print("Line 4:", keyword_array[3])
+    print("Line 5:", keyword_array[4])
+
+    '''
+    keywords_nospace = []
+
+    for i in range (0, len(keyword_array) - 1):
+        keywords_nospace.append(keyword_array[i])
+
+    print("Line 1:", keywords_nospace[0])
+    print("Line 2:", keywords_nospace[1])
+    print("Line 3:", keywords_nospace[2])
+    print("Line 4:", keywords_nospace[3])
+    print("Line 5:", keywords_nospace[4]) 
+    '''
+
+    sample_statement = "My fascination with technology was sparked when, as a child I thought it would be a great idea to take apart my Playstation console. Aware of the danger, I was still eager to see how it all worked inside. I find it intriguing how fast society has been shaped and continues to be, by the influence of Computer Science. A few years ago if someone were to have claimed that cars would become autonomous, people would have doubted them. Now we are at a stage where nearly anything is possible and this is due to the relentless problem solving of computer scientists. The latest software update released by Tesla motors allows their cars to learn how to drive themselves, and is an example of artificial intelligence, a sector which I am most interested in. I want to study Computer Science because I want to gain the knowledge needed to be able to help find solutions to world problems, with the efficient use of computer technology. With the knowledge and skills, I will attain from this course, the creative ideas that I could bring into fruition would be endless. I hope to become one of the computer scientists who adapt technology to help the human race evolve. One possibility would be for artificially intelligent gadgets to recognise different people and adjust to their individual needs based on personal preferences. I have been teaching myself Objective-C syntax in my spare time and have completed online programming courses, which have allowed me to explore the endless possibilities that computer science can bring to the world. I have also learnt to create a simple iOS game using Apple’s syntax called ‘Swift’, in XCode alongside Photoshop."
+
+    # preprocess the statement
+
+    processed_text = sample_statement.lower().replace(".", "").replace(",", "").replace("'", "")
+
+    # statement_tokens = word_tokenize(processed_text)
+
+    # get stop words
+
+    stop_words = set(stopwords.words('english'))
+
+    # this separates statement into individual words
+
+    # statement_tokens = [x for x in statement_tokens if x not in stop_words]
+
+    # print(statement_tokens)
+
+    r_nltk = Rake()
+
+    r_nltk.extract_keywords_from_text(processed_text)
+
+    keywords = r_nltk.get_ranked_phrases()
+
+    for x in keywords:
+        print(x)
+
+    return {"message": "Success: required fields are correctly processed"}
+    # else:
+        # return {"message": "Error: there is 1 or more fields that didn't process correctly"}
+>>>>>>> 1412968 (Test of rake_nltk able to process sample statement into keyphrases)
