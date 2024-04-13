@@ -476,7 +476,11 @@ async def submit_course_selection(select_uni: str = Form(...), select_course: st
     collaborative
     """
 
+    test_keywords = test_keywords.strip()
+
     keyword_array = test_keywords.splitlines()
+
+    keyword_array = [keyword.strip() for keyword in keyword_array]
 
     print("Line 1:", keyword_array[0])
     print("Line 2:", keyword_array[1])
@@ -484,36 +488,15 @@ async def submit_course_selection(select_uni: str = Form(...), select_course: st
     print("Line 4:", keyword_array[3])
     print("Line 5:", keyword_array[4])
 
-    '''
-    keywords_nospace = []
-
-    for i in range (0, len(keyword_array) - 1):
-        keywords_nospace.append(keyword_array[i])
-
-    print("Line 1:", keywords_nospace[0])
-    print("Line 2:", keywords_nospace[1])
-    print("Line 3:", keywords_nospace[2])
-    print("Line 4:", keywords_nospace[3])
-    print("Line 5:", keywords_nospace[4]) 
-    '''
-
     sample_statement = "My fascination with technology was sparked when, as a child I thought it would be a great idea to take apart my Playstation console. Aware of the danger, I was still eager to see how it all worked inside. I find it intriguing how fast society has been shaped and continues to be, by the influence of Computer Science. A few years ago if someone were to have claimed that cars would become autonomous, people would have doubted them. Now we are at a stage where nearly anything is possible and this is due to the relentless problem solving of computer scientists. The latest software update released by Tesla motors allows their cars to learn how to drive themselves, and is an example of artificial intelligence, a sector which I am most interested in. I want to study Computer Science because I want to gain the knowledge needed to be able to help find solutions to world problems, with the efficient use of computer technology. With the knowledge and skills, I will attain from this course, the creative ideas that I could bring into fruition would be endless. I hope to become one of the computer scientists who adapt technology to help the human race evolve. One possibility would be for artificially intelligent gadgets to recognise different people and adjust to their individual needs based on personal preferences. I have been teaching myself Objective-C syntax in my spare time and have completed online programming courses, which have allowed me to explore the endless possibilities that computer science can bring to the world. I have also learnt to create a simple iOS game using Apple’s syntax called ‘Swift’, in XCode alongside Photoshop."
 
     # preprocess the statement
 
     processed_text = sample_statement.lower().replace(".", "").replace(",", "").replace("'", "")
 
-    # statement_tokens = word_tokenize(processed_text)
-
     # get stop words
 
     stop_words = set(stopwords.words('english'))
-
-    # this separates statement into individual words
-
-    # statement_tokens = [x for x in statement_tokens if x not in stop_words]
-
-    # print(statement_tokens)
 
     r_nltk = Rake()
 
@@ -521,8 +504,14 @@ async def submit_course_selection(select_uni: str = Form(...), select_course: st
 
     keywords = r_nltk.get_ranked_phrases()
 
-    for x in keywords:
-        print(x)
+    print("keyword_array = ", keyword_array)
+
+    for keyphrase in keywords:
+        print("Keyphrase: ", keyphrase)
+        for keyword in keyword_array:
+
+            if keyword in keyphrase:
+                print("Keyword found: ", keyword)
 
     return {"message": "Success: required fields are correctly processed"}
     # else:
