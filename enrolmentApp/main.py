@@ -476,9 +476,14 @@ async def submit_course_selection(select_uni: str = Form(...), select_course: st
     test_keywords = """\
     skilled programmer
     creative thinker
+    problem solver
     problem solving
+    technical skills
     algorithm design
+    programming
     collaborative
+    project management
+    management
     """
 
     test_keywords = test_keywords.strip()
@@ -486,12 +491,6 @@ async def submit_course_selection(select_uni: str = Form(...), select_course: st
     keyword_array = test_keywords.splitlines()
 
     keyword_array = [keyword.strip() for keyword in keyword_array]
-
-    print("Line 1:", keyword_array[0])
-    print("Line 2:", keyword_array[1])
-    print("Line 3:", keyword_array[2])
-    print("Line 4:", keyword_array[3])
-    print("Line 5:", keyword_array[4])
 
     sample_statement = """ My fascination with technology was sparked when, as a child I thought it would be a great idea to take apart my Playstation console. Aware of the danger, I was still eager to see how it all worked inside. I find it intriguing how fast society has been shaped and continues to be, by the influence of Computer Science. A few years ago if someone were to have claimed that cars would become autonomous, people would have doubted them. Now we are at a stage where nearly anything is possible and this is due to the relentless problem solving of computer scientists. The latest software update released by Tesla motors allows their cars to learn how to drive themselves, and is an example of artificial intelligence, a sector which I am most interested in. I want to study Computer Science because I want to gain the knowledge needed to be able to help find solutions to world problems, with the efficient use of computer technology. With the knowledge and skills, I will attain from this course, the creative ideas that I could bring into fruition would be endless. I hope to become one of the computer scientists who adapt technology to help the human race evolve. One possibility would be for artificially intelligent gadgets to recognise different people and adjust to their individual needs based on personal preferences. I have been teaching myself Objective-C syntax in my spare time and have completed online programming courses, which have allowed me to explore the endless possibilities that computer science can bring to the world. I have also learnt to create a simple iOS game using Apple’s syntax called ‘Swift’, in XCode alongside Photoshop.
 
@@ -517,21 +516,60 @@ Technological advancements take place around us everyday, from the evolution of 
 
     print("keyword_array = ", keyword_array)
 
-    train_set, test_set = train_test_split(keywords, test_size=0.2, random_state=42)
+    train_set, test_set = train_test_split(keywords, test_size=0.9, random_state=43)
 
-    correct = 0
-    total = 0
+    true_pos = 0
+    true_neg = 0
+    false_pos = 0
+    false_neg = 0
+
+    score = 0
 
     for keyphrase in test_set:
+        found = False
         for keyword in keyword_array:
             if keyword in keyphrase:
-                correct += 1
+                found = True
                 break
-        total += 1
+        if found == True:
+            if keyword in keyphrase:
+                true_pos += 1
+                score += 1
+            else:
+                false_pos += 1
+        else:
+            if keyword in keyphrase:
+                false_neg += 1
 
-    accuracy = correct/total
+    total = true_pos + true_neg + false_pos + false_neg
 
-    print("Test set accuracy = ", accuracy, "%")
+    if total == 0:
+        accuracy = 0
+    else:
+        accuracy = true_pos + true_neg / total
+    if true_pos + false_pos == 0:
+        precision = 0
+    else:
+        precision = true_pos / (true_pos + false_pos)
+    if true_pos + false_neg == 0:
+        recall = 0
+    else:
+        recall = true_pos / (true_pos + false_neg)
+    if true_neg + false_pos == 0:
+        specificity = 0
+    else:
+        specificity = true_neg / (true_neg + false_pos)
+    if precision + recall == 0:
+        f1_score = 0
+    else:
+        f1_score = 2 * (precision * recall) / (precision + recall)
+
+    print("Accuracy = ", accuracy)
+    print("Precision = ", precision)
+    print("Recall = ", recall)
+    print("Specificity = ", specificity)
+    print("F1 Score = ", f1_score)
+    print("Personal statement score =", score)
 
     return {"message": "Success: required fields are correctly processed"}
     # else:
