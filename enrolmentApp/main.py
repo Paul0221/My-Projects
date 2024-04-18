@@ -17,6 +17,7 @@ from nltk.corpus import stopwords
 from rake_nltk import Rake
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 #nltk.download()
 >>>>>>> 1412968 (Test of rake_nltk able to process sample statement into keyphrases)
@@ -30,6 +31,9 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 >>>>>>> b668329 (Reverted back to binomial approach as it is more suitable for keyphrase analysis)
+=======
+from fuzzywuzzy import fuzz
+>>>>>>> 506b8e0 (Added fuzzwuzzy to ensure similar phrases to keyphrases are found)
 
 app = FastAPI()
 
@@ -450,34 +454,6 @@ async def course_selection(request: Request):
 
 @app.post("/submit_course_selection")
 async def submit_course_selection(select_uni: str = Form(...), select_course: str = Form(...)):
-    ''' cursor = conn.cursor()
-
-    print("Uni choice = " + select_uni + "\n")
-    print("Course choice = " + select_course + "\n")
-
-    cursor.execute("SELECT id FROM sys.uni_courses WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
-    selected_course = cursor.fetchone()
-
-    cursor.execute("SELECT IFNULL(id, -1) FROM sys.uni_course_keyterms WHERE uni_course_id = %i", selected_course)
-    keyterms_id = cursor.fetchone()
-
-    if keyterms_id != -1:
-        cursor.execute("SELECT keyterms FROM sys.uni_course_keyterms WHERE id = %i", keyterms_id)
-        keyterms = cursor.fetchall()
-
-
-
-    # cursor.execute("SELECT id, university_name FROM sys.universities")
-    # uni_list = cursor.fetchall()
-
-
-    # if select_uni is not None and select_course is not None:
-
-
-
-       #  cursor.close()
-
-    '''
 
     nltk.download('punkt')
     nltk.download('stopwords')
@@ -537,8 +513,9 @@ Technological advancements take place around us everyday, from the evolution of 
     for keyphrase in keywords:
         found = False
         for keyword in keyword_array:
-            if keyword in keyphrase:
+            if fuzz.partial_ratio(keyword, keyphrase) > 80:
                 found = True
+                print(keyword)
                 break
         if found:
             correct += 1
