@@ -51,11 +51,10 @@ async def root():
 =======
 async def root(request: Request):
     return templates.TemplateResponse(request=request, name="home.html")
-        #, context={"id": id})
 
 
 @app.post("/submit_application")
-async def submit_application(first_name: str = Form(...), last_name: str = Form(...),
+async def submit_application(request: Request, first_name: str = Form(...), last_name: str = Form(...),
                              email_address: str = Form(...),select_uni: str = Form(...), select_course: str = Form(...),
                              first_subject: str = Form(...), first_grade: str = Form(...),
                              second_subject: str = Form(...), second_grade: str = Form(...),
@@ -112,6 +111,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
     print("req_sub_one_check = ", req_sub_one_check[0][0])
     print("req_sub_two_check = ", req_sub_two_check[0][0])
 
+    req_check_counter = 0
+
     if (first_name is not None and last_name is not None and email_address is not None
             and select_uni is not None and select_course is not None and first_subject is not None
             and first_grade is not None and second_subject is not None and second_grade is not None
@@ -143,6 +144,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if first_subject == req_sub_one_check[0][0]:
 
+                req_check_counter += 1
+
                 first_grade_idx = possible_grades.index(first_grade[0][0])
 
                 print("first_grade_idx = ", first_grade_idx)
@@ -164,6 +167,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if second_subject == req_sub_one_check[0][0]:
 
+                req_check_counter += 1
+
                 second_grade_idx = possible_grades.index(second_grade[0][0])
 
                 print("second_grade_idx = ", second_grade_idx)
@@ -184,6 +189,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if third_subject == req_sub_one_check[0][0]:
 
+                req_check_counter += 1
+
                 third_grade_idx = possible_grades.index(third_grade[0][0])
 
                 if third_grade_idx == req_one_grad_idx:
@@ -197,6 +204,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
                 sub_three_flag = True
 
             if other_subject is not None and other_subject == req_sub_one_check[0][0]:
+
+                req_check_counter += 1
 
                 other_grade_idx = possible_grades.index(other_grade[0][0])
 
@@ -222,6 +231,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if first_subject == req_sub_two_check[0][0]:
 
+                req_check_counter += 1
+
                 first_grade_idx = possible_grades.index(first_grade[0][0])
 
                 print("first_grade_idx = ", first_grade_idx)
@@ -241,6 +252,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
                 print("sub_one_flag = ", sub_one_flag)
 
             if second_subject == req_sub_two_check[0][0]:
+
+                req_check_counter += 1
 
                 print("req_sub_two_check = ", req_sub_two_check[0][0])
 
@@ -264,6 +277,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if third_subject == req_sub_two_check[0][0]:
 
+                req_check_counter += 1
+
                 third_grade_idx = possible_grades.index(third_grade[0][0])
 
                 if third_grade_idx == req_two_grad_idx:
@@ -278,6 +293,8 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
             if other_subject is not None and other_subject == req_sub_two_check[0][0]:
 
+                req_check_counter += 1
+
                 other_grade_idx = possible_grades.index(other_grade[0][0])
 
                 if other_grade_idx == req_two_grad_idx:
@@ -289,6 +306,13 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
                     grade_score = -1
 
                 sub_other_flag = True
+
+        if (req_sub_one_check[0][0] is not None or req_sub_two_check[0][0] is not None) and req_check_counter == 0:
+            sub_one_flag = True
+            sub_two_flag = True
+            sub_three_flag = True
+            sub_other_flag = True
+            grade_score = -1
 
         while sub_one_flag is False or sub_two_flag is False or sub_three_flag is False or sub_other_flag is False:
             print("Flag check:")
@@ -493,24 +517,10 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
         cursor.close()
 
-        return {"message": "Success: required fields are correctly processed"}
+        return templates.TemplateResponse(request=request, name="application_submitted.html")
     else:
-        return {"message": "Error: appllication process failed to be completed"}
-
-    '''if new_username is None:
-        raise HTTPException(status_code=400, detail="Username is null when it should not")
-    if new_password is None:
-        raise HTTPException(status_code=401, detail="Password is null when it should not")
-    if retyped_password is None:
-        raise HTTPException(status_code=402, detail="Retyped password is null when it should not")
-
-    if new_password == retyped_password:
-        cursor.execute("INSERT INTO sys.users (user_name, user_password) VALUES (%s, %s)", (new_username, new_password))
-        conn.commit()
-
-        return RedirectResponse(url='/', status_code=302)
-    else:
-        return {"message": "Error: unable to create account"}'''
+        raise HTTPException(status_code=403,
+                            detail="Error submitting application. Please review application details and try again")
 
 
 @app.get("/upload_application", response_class=HTMLResponse)
