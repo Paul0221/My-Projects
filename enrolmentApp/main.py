@@ -328,6 +328,80 @@ async def submit_application(first_name: str = Form(...), last_name: str = Form(
 
                     sub_other_flag = True
 
+        cursor.execute("SELECT id "
+                       " FROM sys.uni_courses "
+                       "WHERE uni_id = %i AND course_id = %i", (select_uni, select_course))
+        course_id = cursor.fetchone()
+
+        keyterms_array = []
+
+        cursor.execute("SELECT keyterms"
+                       " FROM sys.uni_course_keyterms "
+                       "WHERE uni_course_id = %i", course_id)
+
+        for term in cursor:
+            keyterms_array.append(term)
+
+        processed_statement = personal_statement.lower().replace(".", "").replace(",", "").replace("'", "")
+
+        set(stopwords.words('english'))
+
+        r_nltk = Rake()
+
+        r_nltk.extract_keywords_from_text(processed_statement)
+
+        statement_keyphrases = r_nltk.get_ranked_phrases()
+
+        statement_score = 0
+
+        for keyphrase in statement_keyphrases:
+            found = False
+            for keyterm in keyterms_array:
+                if fuzz.partial_ratio(keyterm, keyphrase) > 80:
+                    found = True
+                    break
+            if found:
+                statement_score += 1
+
+        approved = 'T'  # 'T' = TBC
+
+        if grade_score == -1:
+            total_score = -1
+        else:
+            total_score = grade_score + statement_score
+
+        cursor.execute("INSERT INTO sys.uni_application (first_name, last_name, email_address, uni_id, course_id, "
+                       "first_grade, second_grade, third_grade, other_grade, grade_score, personal_statement, ps_score, "
+                       "total_score, approved_mkr) VALUES (%s, %s, %s, %i, %i, %s, %s, %s, %s, %i, %s, %i, %i, %s)",
+                       (first_name, last_name, email_address, select_uni, select_course, first_grade, second_grade,
+                        third_grade, other_grade, grade_score, personal_statement, statement_score, total_score,
+                        approved))
+        conn.commit()
+
+        # first find the average of total_score
+        cursor.execute("SELECT IFNULL(AVG(total_score), 0) AS average_total"
+                       " FROM sys.uni_application ")
+        avg_total = cursor.fetchone()
+
+        # if total_score < average then approved = 'N' (rejected)
+        cursor.execute("UPDATE sys.uni_application SET approved_mkr = 'N' WHERE %i < %i", (total_score, avg_total))
+        conn.commit()
+        # if total_score >= average, find averages for grade_score and statement_score
+        cursor.execute("SELECT IFNULL(AVG(grade_score), 0) AS average_grade"
+                       " FROM sys.uni_application ")
+        avg_grade = cursor.fetchone()
+        cursor.execute("SELECT IFNULL(AVG(ps_score), 0) AS average_statement"
+                       " FROM sys.uni_application ")
+        avg_ps = cursor.fetchone()
+        # if grade_score > average grade_score and statement_score > average statement_score then approved = 'U' (unconditional)
+        cursor.execute("UPDATE sys.uni_application SET approved_mkr = 'U' WHERE %i >= %i AND %i > %i AND %i > %i",
+                       (total_score, avg_total, grade_score, avg_grade, statement_score, avg_ps))
+        conn.commit()
+        # else approved = 'C' (conditional)
+        cursor.execute("UPDATE sys.uni_application SET approved_mkr = 'C' WHERE %i >= %i AND (%i <= %i OR %i <= %i)",
+                       (total_score, avg_total, grade_score, avg_grade, statement_score, avg_ps))
+        conn.commit()
+
         cursor.close()
 
         return {"message": "Success: required fields are correctly processed"}
