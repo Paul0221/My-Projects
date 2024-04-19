@@ -44,7 +44,9 @@ CREATE TABLE sys.uni_courses (
   FOREIGN KEY (req_subject_two) references required_subjects(id)
 );
 
-INSERT INTO sys.uni_courses (uni_id, course_id, active_mkr, req_grade_one, req_grade_two, req_grade_three, req_subject_one, req_subject_two) VALUES (1, 1, 'Y', 'A', 'A', 'A', 1, 1);
+INSERT INTO sys.uni_courses (uni_id, course_id, active_mkr, req_grade_one, req_grade_two, req_grade_three, req_subject_one, req_sub_one_grade, req_subject_two, req_sub_two_grade) VALUES (1, 1, 'Y', 'A', 'A', 'A', 1, 'A', 2, 'A');
+
+DELETE FROM sys.uni_courses WHERE id = 1;
 
 CREATE TABLE sys.required_subjects(
   id int PRIMARY KEY auto_increment,
@@ -55,7 +57,18 @@ CREATE TABLE sys.required_subjects(
 INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('Mathematics', 'A');
 INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('Computer Science', 'A');
 
-SELECT * FROM sys.required_subjects;
+SELECT * FROM sys.uni_course_keyterms;
+
+DELETE FROM sys.uni_course_keyterms WHERE uni_course_id = 1;
+
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('skilled programmer', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('creative thinker', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('problem solving', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('technical skills', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('algorithm design', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('programming', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('collaborative', 2);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('project management', 2);
 
 CREATE TABLE sys.uni_application (
   id int PRIMARY KEY auto_increment,
@@ -67,7 +80,7 @@ CREATE TABLE sys.uni_application (
   first_grade VARCHAR(5) NOT NULL,
   second_grade VARCHAR(5) NOT NULL,
   third_grade VARCHAR(5) NOT NULL,
-  other_grade VARCHAR(5) NOT NULL,
+  other_grade VARCHAR(5),
   grade_score INT NOT NULL,
   personal_statement VARCHAR(4000) NOT NULL,
   ps_score INT NOT NULL,
