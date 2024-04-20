@@ -625,6 +625,26 @@ async def course_selection(request: Request):
                                                                 "select_course": select_course})
 
 
+@app.get("/view_applications")
+async def view_applications(request: Request):
+
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT unap.first_name, unap.last_name, unap.email_address, uni.university_name AS university, CONCAT(cour.qualification_code, ' ', cour.course_name) AS course_name, unap.grade_score, unap.ps_score, unap.total_score, CASE WHEN approved_mkr = 'N' THEN 'Rejected' WHEN approved_mkr = 'C' THEN 'Conditional' WHEN approved_mkr = 'U' THEN 'Unconditional' WHEN approved_mkr = 'T' THEN 'To Be Confirmed' END AS approved "
+                   "FROM sys.uni_application unap "
+                   "LEFT JOIN sys.universities uni ON unap.uni_id = uni.id "
+                   "LEFT JOIN sys.courses cour ON unap.course_id = cour.id")
+    data = cursor.fetchall()
+
+    cursor.close()
+
+    return templates.TemplateResponse('view_applications.html', {"request": request, "data": data})
+
+
+@app.post("/return_admin")
+async def return_admin_home(request: Request):
+    return templates.TemplateResponse(request=request, name="admin_home.html")  # redirect to admissions main screen
+
 @app.post("/submit_course_selection")
 async def submit_course_selection(select_uni: str = Form(...), select_course: str = Form(...)):
 
