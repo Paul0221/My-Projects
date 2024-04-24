@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload university application</title>
+</head>
+<body>
+    <h1> Welcome to the university application process. <br> <br> </h1>
+    <h2> Please enter following details required for your application. <br> <br> Once entered, please ensure that all
+         the details entered are correct as you can only upload one application per applicant. <br> <br> When you are
+         satisfied that all the details are correct, click on 'submit' to submit your application. </h2>
+    <form method="post" action="/submit_application">
+        <label>First name:</label> <br>
+        <input type="text" id="first_name", name="first_name" required> <br> <br>
+        <label>Last name:</label> <br>
+        <input type="text" id="last_name", name="last_name" required> <br> <br>
+        <label>Email address:</label> <br>
+        <input type="text" id="email_address", name="email_address" required> <br> <br>
+        {{ select_uni | safe}}<br> <br>
+        {{ select_course | safe}} <br> <br>
+        <label>Please enter the title of your first A level subject:</label> <br>
+        <input type="text" id="first_subject", name="first_subject" required> <br> <br>
+        <label for="first_grade">Please select your first predicted A level grade: </label>
+        <select name="first_grade" id="first_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="A*">A*</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="U">U</option>
+        </select> <br><br>
+        <label>Please enter the title of your second A level subject:</label> <br>
+        <input type="text" id="second_subject", name="second_subject" required> <br> <br>
+        <label for="second_grade">Please select your second predicted A level grade: </label>
+        <select name="second_grade" id="second_grade">
+            <option value=''> Select a grade:</option>
+            <option value="A*">A*</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="U">U</option>
+        </select> <br> <br>
+        <label>Please enter the title of your third A level subject:</label> <br>
+        <input type="text" id="third_subject", name="third_subject" required> <br> <br>
+        <label for="third_grade">Please select your third predicted A level grade: </label>
+        <select name="third_grade" id="third_grade">
+            <option value=''> Select a grade:</option>
+            <option value="A*">A*</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="U">U</option>
+        </select> <br> <br>
+        <label>Please enter the title of your fourth A level subject (if applicable, else leave blank):</label> <br>
+        <input type="text" id="other_subject", name="other_subject"> <br> <br>
+        <label for="other_grade">Please select your fourth predicted A level grade (if applicable, else leave blank): </label>
+        <select name="other_grade" id="other_grade">
+            <option value=''> Select a grade:</option>
+            <option value="A*">A*</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="U">U</option>
+        </select> <br> <br>
+        <label for="personal_statement">Please enter your personal statement below: </label> <br> <br>
+        <textarea id="personal_statement" name="personal_statement" maxlength="4000" rows="10" cols="50" required></textarea> <br> <br>
+        <h3> Now enter 5 GCSE subjects and the grades you obtained for that subject. </h3> <br> <br>
+        <label>Please enter the title of your first GCSE subject:</label> <br>
+        <input type="text" id="first_gcse", name="first_gcse" required> <br> <br>
+        <label for="first_gcse_grade">Please select the GCSE grade you obtained: </label>
+        <select name="first_gcse_grade" id="first_gcse_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+        </select> <br><br>
+        <label>Please enter the title of your second GCSE subject:</label> <br>
+        <input type="text" id="second_gcse", name="second_gcse" required> <br> <br>
+        <label for="second_gcse_grade">Please select the GCSE grade you obtained: </label>
+        <select name="second_gcse_grade" id="second_gcse_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+        </select> <br><br>
+        <label>Please enter the title of your third GCSE subject:</label> <br>
+        <input type="text" id="third_gcse", name="third_gcse" required> <br> <br>
+        <label for="third_gcse_grade">Please select the GCSE grade you obtained: </label>
+        <select name="third_gcse_grade" id="third_gcse_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+        </select> <br><br>
+        <label>Please enter the title of your fourth GCSE subject:</label> <br>
+        <input type="text" id="fourth_gcse", name="fourth_gcse" required> <br> <br>
+        <label for="fourth_gcse_grade">Please select the GCSE grade you obtained: </label>
+        <select name="fourth_gcse_grade" id="fourth_gcse_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+        </select> <br><br>
+        <label>Please enter the title of your fifth GCSE subject:</label> <br>
+        <input type="text" id="fifth_gcse", name="fifth_gcse" required> <br> <br>
+        <label for="fifth_gcse_grade">Please select the GCSE grade you obtained: </label>
+        <select name="fifth_gcse_grade" id="fifth_gcse_grade" required>
+            <option value=''> Select a grade:</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+        </select> <br><br>
+        <button type="submit"> Submit application </button>
+    </form>
+</body>
+</html>

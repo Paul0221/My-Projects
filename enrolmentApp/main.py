@@ -52,6 +52,7 @@ async def root():
 async def root(request: Request):
     return templates.TemplateResponse(request=request, name="home.html")
 
+# add ability to submit secondary qualifications
 
 @app.post("/submit_application")
 async def submit_application(request: Request, first_name: str = Form(...), last_name: str = Form(...),
@@ -60,7 +61,12 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                              second_subject: str = Form(...), second_grade: str = Form(...),
                              third_subject: str = Form(...), third_grade: str = Form(...),
                              other_subject: Optional[str] = Form(None), other_grade: Optional[str] = Form(None),
-                             personal_statement: str = Form(...)):
+                             personal_statement: str = Form(...), first_gcse: str = Form(...),
+                             first_gcse_grade: str = Form(...), second_gcse: str = Form(...),
+                             second_gcse_grade: str = Form(...), third_gcse: str = Form(...),
+                             third_gcse_grade: str = Form(...), fourth_gcse: str = Form(...),
+                             fourth_gcse_grade: str = Form(...), fifth_gcse: str = Form(...),
+                             fifth_gcse_grade: str = Form(...)):
     cursor = conn.cursor()
 
     print("First name = " + first_name + "\n")
@@ -75,8 +81,19 @@ async def submit_application(request: Request, first_name: str = Form(...), last
     print("Third subject = " + third_subject + "\n")
     print("Third grade = " + third_grade + "\n")
     print("Personal statement = " + personal_statement + "\n")
+    print("First GCSE = " + first_gcse + "\n")
+    print("First GCSE grade = " + first_gcse_grade + "\n")
+    print("Second GCSE = " + second_gcse + "\n")
+    print("Second GCSE grade = " + second_gcse_grade + "\n")
+    print("Third GCSE = " + third_gcse + "\n")
+    print("Third GCSE grade = " + third_gcse_grade + "\n")
+    print("Fourth GCSE = " + fourth_gcse + "\n")
+    print("Fourth GCSE grade = " + fourth_gcse_grade + "\n")
+    print("Firth GCSE = " + fifth_gcse + "\n")
+    print("Fifth GCSE grade = " + fifth_gcse_grade + "\n")
 
     possible_grades = ["A*", "A", "B", "C", "D", "E", "U"]
+    possible_gcse_grades = ["9", "8", "7", "6", "5", "4", "3", "2", "1"]
     grade_score = 0
     sub_one_flag = False
     sub_two_flag = False
@@ -98,6 +115,16 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                    "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
     req_sub_two_check = cursor.fetchall()
 
+    cursor.execute("SELECT IFNULL(req_subject_three, 'None') AS req_subject_three "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_three_check = cursor.fetchall()
+
+    cursor.execute("SELECT IFNULL(req_subject_four, 'None') AS req_subject_four "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_four_check = cursor.fetchall()
+
     cursor.execute("SELECT req_sub_one_grade "
                    " FROM sys.uni_courses "
                    "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
@@ -108,19 +135,66 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                    "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
     req_sub_two_grade = cursor.fetchall()
 
+    cursor.execute("SELECT req_sub_three_grade "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_three_grade = cursor.fetchall()
+
+    cursor.execute("SELECT req_sub_four_grade "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    req_sub_four_grade = cursor.fetchall()
+
+    cursor.execute("SELECT subject_level "
+                   " FROM sys.required_subjects "
+                   "WHERE id = %s", (req_sub_one_check[0][0],))
+    req_sub_one_level = cursor.fetchall()
+
+    cursor.execute("SELECT subject_level "
+                   " FROM sys.required_subjects "
+                   "WHERE id = %s", (req_sub_two_check[0][0],))
+    req_sub_two_level = cursor.fetchall()
+
+    cursor.execute("SELECT subject_level "
+                   " FROM sys.required_subjects "
+                   "WHERE id = %s", (req_sub_three_check[0][0],))
+    req_sub_three_level = cursor.fetchall()
+
+    cursor.execute("SELECT subject_level "
+                   " FROM sys.required_subjects "
+                   "WHERE id = %s", (req_sub_four_check[0][0],))
+    req_sub_four_level = cursor.fetchall()
+
     print("req_sub_one_check = ", req_sub_one_check[0][0])
     print("req_sub_two_check = ", req_sub_two_check[0][0])
+    print("req_sub_three_check = ", req_sub_three_check[0][0])
+    print("req_sub_four_check = ", req_sub_four_check[0][0])
+    print("req_sub_one_level = ", req_sub_one_level[0][0])
+    print("req_sub_two_level = ", req_sub_two_level[0][0])
+    print("req_sub_three_level = ", req_sub_three_level[0][0])
+    print("req_sub_three_grade = ", req_sub_three_grade[0][0])
+    print("req_sub_four_level = ", req_sub_four_level[0][0])
+    print("req_sub_four_grade = ", req_sub_four_grade[0][0])
 
     req_check_counter = 0
 
     if (first_name is not None and last_name is not None and email_address is not None
             and select_uni is not None and select_course is not None and first_subject is not None
             and first_grade is not None and second_subject is not None and second_grade is not None
-            and third_subject is not None and third_grade is not None and personal_statement is not None):
+            and third_subject is not None and third_grade is not None and personal_statement is not None
+            and first_gcse is not None and first_gcse_grade is not None and second_gcse is not None
+            and second_gcse_grade is not None and third_gcse is not None and third_gcse_grade is not None
+            and fourth_gcse is not None and fourth_gcse_grade is not None and fifth_gcse is not None
+            and fifth_gcse_grade is not None):
 
         if req_sub_one_check[0][0] != "None":
 
-            req_one_grad_idx = possible_grades.index(req_sub_one_grade[0][0])
+            req_one_grad_idx = 'Initialised'
+
+            if req_sub_one_level[0][0] == 'A':
+                req_one_grad_idx = possible_grades.index(req_sub_one_grade[0][0])
+            elif req_sub_one_level[0][0] == 'G':
+                req_one_grad_idx = possible_gcse_grades.index(req_sub_one_grade[0][0])
 
             print("req_one_grad_idx = ", req_one_grad_idx)
 
@@ -138,11 +212,25 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                            "WHERE id = %s", (req_sub_two_check[0][0],))
             req_sub_two_check = cursor.fetchall()
 
+            cursor.execute("SELECT subject_name "
+                           " FROM sys.required_subjects "
+                           "WHERE id = %s", (req_sub_three_check[0][0],))
+            req_sub_three_check = cursor.fetchall()
+
+            cursor.execute("SELECT subject_name "
+                           " FROM sys.required_subjects "
+                           "WHERE id = %s", (req_sub_four_check[0][0],))
+            req_sub_four_check = cursor.fetchall()
+
             print("req_sub_one_check = ", req_sub_one_check[0][0])
 
             print("req_sub_two_check = ", req_sub_two_check[0][0])
 
-            if first_subject == req_sub_one_check[0][0]:
+            print("req_sub_three_check = ", req_sub_three_check[0][0])
+
+            print("req_sub_four_check = ", req_sub_four_check[0][0])
+
+            if first_subject == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -165,7 +253,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
                 print("sub_one_flag = ", sub_one_flag)
 
-            if second_subject == req_sub_one_check[0][0]:
+            if second_subject == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -187,7 +275,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
 
-            if third_subject == req_sub_one_check[0][0]:
+            if third_subject == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -203,7 +291,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
                 sub_three_flag = True
 
-            if other_subject is not None and other_subject == req_sub_one_check[0][0]:
+            if other_subject is not None and other_subject == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -219,9 +307,109 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
                 sub_other_flag = True
 
+            if first_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                first_gcse_grade_idx = possible_gcse_grades.index(first_gcse_grade[0][0])
+
+                print("first_gcse_grade_idx = ", first_gcse_grade_idx)
+
+                if first_gcse_grade_idx == req_one_grad_idx:
+                    grade_score += 1
+                    print("first_gcse_grade_idx == req_one_grad_idx")
+                elif first_gcse_grade_idx < req_one_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_one_grad_idx + 1) - (first_gcse_grade_idx + 1)
+                    print("first_gcse_grade_idx < req_one_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if second_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                second_gcse_grade_idx = possible_gcse_grades.index(second_gcse_grade[0][0])
+
+                print("second_gcse_grade_idx = ", second_gcse_grade_idx)
+
+                if second_gcse_grade_idx == req_one_grad_idx:
+                    grade_score += 1
+                    print("second_gcse_grade_idx == req_one_grad_idx")
+                elif second_gcse_grade_idx < req_one_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_one_grad_idx + 1) - (second_gcse_grade_idx + 1)
+                    print("second_gcse_grade_idx < req_one_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if third_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                third_gcse_grade_idx = possible_gcse_grades.index(third_gcse_grade[0][0])
+
+                print("third_gcse_grade_idx = ", third_gcse_grade_idx)
+
+                if third_gcse_grade_idx == req_one_grad_idx:
+                    grade_score += 1
+                    print("third_gcse_grade_idx == req_one_grad_idx")
+                elif third_gcse_grade_idx < req_one_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_one_grad_idx + 1) - (third_gcse_grade_idx + 1)
+                    print("third_gcse_grade_idx < req_one_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fourth_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fourth_gcse_grade_idx = possible_gcse_grades.index(fourth_gcse_grade[0][0])
+
+                print("fourth_gcse_grade_idx = ", fourth_gcse_grade_idx)
+
+                if fourth_gcse_grade_idx == req_one_grad_idx:
+                    grade_score += 1
+                    print("fourth_gcse_grade_idx == req_one_grad_idx")
+                elif fourth_gcse_grade_idx < req_one_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_one_grad_idx + 1) - (fourth_gcse_grade_idx + 1)
+                    print("fourth_gcse_grade_idx < req_one_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fifth_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fifth_gcse_grade_idx = possible_gcse_grades.index(fifth_gcse_grade[0][0])
+
+                print("fifth_gcse_grade_idx = ", fifth_gcse_grade_idx)
+
+                if fifth_gcse_grade_idx == req_one_grad_idx:
+                    grade_score += 1
+                    print("fifth_gcse_grade_idx == req_one_grad_idx")
+                elif fifth_gcse_grade_idx < req_one_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_one_grad_idx + 1) - (fifth_gcse_grade_idx + 1)
+                    print("fifth_gcse_grade_idx < req_one_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
         if req_sub_two_check[0][0] != "None" and grade_score != -1:
 
-            req_two_grad_idx = possible_grades.index(req_sub_two_grade[0][0])
+            req_two_grad_idx = 'Initialised'
+
+            if req_sub_two_level[0][0] == 'A':
+                req_two_grad_idx = possible_grades.index(req_sub_two_grade[0][0])
+            elif req_sub_two_level[0][0] == 'G':
+                req_two_grad_idx = possible_gcse_grades.index(req_sub_two_grade[0][0])
 
             print("req_two_grad_idx = ", req_two_grad_idx)
 
@@ -229,7 +417,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
             print("req_sub_two_check = ", req_sub_two_check[0][0])
 
-            if first_subject == req_sub_two_check[0][0]:
+            if first_subject == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -251,7 +439,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 sub_one_flag = True
                 print("sub_one_flag = ", sub_one_flag)
 
-            if second_subject == req_sub_two_check[0][0]:
+            if second_subject == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -275,7 +463,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
 
-            if third_subject == req_sub_two_check[0][0]:
+            if third_subject == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -291,7 +479,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
                 sub_three_flag = True
 
-            if other_subject is not None and other_subject == req_sub_two_check[0][0]:
+            if other_subject is not None and other_subject == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'A':
 
                 req_check_counter += 1
 
@@ -307,7 +495,518 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
                 sub_other_flag = True
 
-        if (req_sub_one_check[0][0] is not None or req_sub_two_check[0][0] is not None) and req_check_counter == 0:
+            if first_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                first_gcse_grade_idx = possible_gcse_grades.index(first_gcse_grade[0][0])
+
+                print("first_gcse_grade_idx = ", first_gcse_grade_idx)
+
+                if first_gcse_grade_idx == req_two_grad_idx:
+                    grade_score += 1
+                    print("first_gcse_grade_idx == req_two_grad_idx")
+                elif first_gcse_grade_idx < req_two_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_two_grad_idx + 1) - (first_gcse_grade_idx + 1)
+                    print("first_gcse_grade_idx < req_two_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if second_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                second_gcse_grade_idx = possible_gcse_grades.index(second_gcse_grade[0][0])
+
+                print("second_gcse_grade_idx = ", second_gcse_grade_idx)
+
+                if second_gcse_grade_idx == req_two_grad_idx:
+                    grade_score += 1
+                    print("second_gcse_grade_idx == req_two_grad_idx")
+                elif second_gcse_grade_idx < req_two_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_two_grad_idx + 1) - (second_gcse_grade_idx + 1)
+                    print("second_gcse_grade_idx < req_two_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if third_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                third_gcse_grade_idx = possible_gcse_grades.index(third_gcse_grade[0][0])
+
+                print("third_gcse_grade_idx = ", third_gcse_grade_idx)
+
+                if third_gcse_grade_idx == req_two_grad_idx:
+                    grade_score += 1
+                    print("third_gcse_grade_idx == req_two_grad_idx")
+                elif third_gcse_grade_idx < req_two_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_two_grad_idx + 1) - (third_gcse_grade_idx + 1)
+                    print("third_gcse_grade_idx < req_two_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fourth_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fourth_gcse_grade_idx = possible_gcse_grades.index(fourth_gcse_grade[0][0])
+
+                print("fourth_gcse_grade_idx = ", fourth_gcse_grade_idx)
+
+                if fourth_gcse_grade_idx == req_two_grad_idx:
+                    grade_score += 1
+                    print("fourth_gcse_grade_idx == req_two_grad_idx")
+                elif fourth_gcse_grade_idx < req_two_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_two_grad_idx + 1) - (fourth_gcse_grade_idx + 1)
+                    print("fourth_gcse_grade_idx < req_two_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fifth_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fifth_gcse_grade_idx = possible_gcse_grades.index(fifth_gcse_grade[0][0])
+
+                print("fifth_gcse_grade_idx = ", fifth_gcse_grade_idx)
+
+                if fifth_gcse_grade_idx == req_two_grad_idx:
+                    grade_score += 1
+                    print("fifth_gcse_grade_idx == req_two_grad_idx")
+                elif fifth_gcse_grade_idx < req_two_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_two_grad_idx + 1) - (fifth_gcse_grade_idx + 1)
+                    print("fifth_gcse_grade_idx < req_two_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+        # third subject check
+
+        if req_sub_three_check[0][0] != "None" and grade_score != -1:
+
+            req_three_grad_idx = 'Initialised'
+
+            if req_sub_three_level[0][0] == 'A':
+                req_three_grad_idx = possible_grades.index(req_sub_three_grade[0][0])
+                print("req_three_grad_idx in first if = ", req_three_grad_idx)
+            elif req_sub_three_level[0][0] == 'G':
+                req_three_grad_idx = possible_gcse_grades.index(req_sub_three_grade[0][0])
+                print("req_three_grad_idx in second if = ", req_three_grad_idx)
+
+            print("req_sub_three_grade = ", req_sub_three_grade[0][0])
+
+            print("req_three_grad_idx = ", req_three_grad_idx)
+
+            print("first_subject = ", first_subject)
+
+            print("req_sub_three_check = ", req_sub_three_check[0][0])
+
+            first_gcse_grade_idx = possible_gcse_grades.index(first_gcse_grade[0][0])
+
+            print("first_gcse_grade_idx = ", first_gcse_grade_idx)
+
+            if first_subject == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                first_grade_idx = possible_grades.index(first_grade[0][0])
+
+                print("first_grade_idx = ", first_grade_idx)
+
+                if first_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("first_grade_idx == req_three_grad_idx")
+                elif first_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (first_grade_idx + 1)
+                    print("first_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade score set to -1")
+
+                sub_one_flag = True
+                print("sub_one_flag = ", sub_one_flag)
+
+            if second_subject == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                print("req_sub_three_check = ", req_sub_three_check[0][0])
+
+                second_grade_idx = possible_grades.index(second_grade[0][0])
+
+                print("second_grade_idx = ", second_grade_idx)
+
+                if second_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("second_grade_idx == req_three_grad_idx")
+                elif second_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (second_grade_idx + 1)
+                    print("second_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+                sub_two_flag = True
+                print("sub_two_flag = ", sub_two_flag)
+
+            if third_subject == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                third_grade_idx = possible_grades.index(third_grade[0][0])
+
+                if third_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                elif third_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (third_grade_idx + 1)
+                else:
+                    grade_score = -1
+
+                sub_three_flag = True
+
+            if other_subject is not None and other_subject == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                other_grade_idx = possible_grades.index(other_grade[0][0])
+
+                if other_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                elif other_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (other_grade_idx + 1)
+                else:
+                    grade_score = -1
+
+                sub_other_flag = True
+
+            if first_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
+
+                print("Enters gcse check for Mathematics")
+
+                req_check_counter += 1
+
+                first_gcse_grade_idx = possible_gcse_grades.index(first_gcse_grade[0][0])
+
+                print("first_gcse_grade_idx = ", first_gcse_grade_idx)
+
+                if first_gcse_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("first_gcse_grade_idx == req_three_grad_idx")
+                elif first_gcse_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (first_gcse_grade_idx + 1)
+                    print("first_gcse_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if second_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                second_gcse_grade_idx = possible_gcse_grades.index(second_gcse_grade[0][0])
+
+                print("second_gcse_grade_idx = ", second_gcse_grade_idx)
+
+                if second_gcse_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("second_gcse_grade_idx == req_three_grad_idx")
+                elif second_gcse_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (second_gcse_grade_idx + 1)
+                    print("second_gcse_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if third_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                third_gcse_grade_idx = possible_gcse_grades.index(third_gcse_grade[0][0])
+
+                print("third_gcse_grade_idx = ", third_gcse_grade_idx)
+
+                if third_gcse_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("third_gcse_grade_idx == req_three_grad_idx")
+                elif third_gcse_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (third_gcse_grade_idx + 1)
+                    print("third_gcse_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fourth_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fourth_gcse_grade_idx = possible_gcse_grades.index(fourth_gcse_grade[0][0])
+
+                print("fourth_gcse_grade_idx = ", fourth_gcse_grade_idx)
+
+                if fourth_gcse_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("fourth_gcse_grade_idx == req_three_grad_idx")
+                elif fourth_gcse_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (fourth_gcse_grade_idx + 1)
+                    print("fourth_gcse_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fifth_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fifth_gcse_grade_idx = possible_gcse_grades.index(fifth_gcse_grade[0][0])
+
+                print("fifth_gcse_grade_idx = ", fifth_gcse_grade_idx)
+
+                if fifth_gcse_grade_idx == req_three_grad_idx:
+                    grade_score += 1
+                    print("fifth_gcse_grade_idx == req_three_grad_idx")
+                elif fifth_gcse_grade_idx < req_three_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_three_grad_idx + 1) - (fifth_gcse_grade_idx + 1)
+                    print("fifth_gcse_grade_idx < req_three_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+        # fourth subject check
+
+        if req_sub_four_check[0][0] != "None" and grade_score != -1:
+
+            req_four_grad_idx = 'Initialised'
+
+            if req_sub_four_level[0][0] == 'A':
+                req_four_grad_idx = possible_grades.index(req_sub_four_grade[0][0])
+            elif req_sub_four_level[0][0] == 'G':
+                req_four_grad_idx = possible_gcse_grades.index(req_sub_four_grade[0][0])
+
+            print("req_four_grad_idx = ", req_four_grad_idx)
+
+            print("first_subject = ", first_subject)
+
+            print("req_sub_four_check = ", req_sub_four_check[0][0])
+
+            if first_subject == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                first_grade_idx = possible_grades.index(first_grade[0][0])
+
+                print("first_grade_idx = ", first_grade_idx)
+
+                if first_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("first_grade_idx == req_four_grad_idx")
+                elif first_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (first_grade_idx + 1)
+                    print("first_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade score set to -1")
+
+                sub_one_flag = True
+                print("sub_one_flag = ", sub_one_flag)
+
+            if second_subject == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                print("req_sub_four_check = ", req_sub_four_check[0][0])
+
+                second_grade_idx = possible_grades.index(second_grade[0][0])
+
+                print("second_grade_idx = ", second_grade_idx)
+
+                if second_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("second_grade_idx == req_four_grad_idx")
+                elif second_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (second_grade_idx + 1)
+                    print("second_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+                sub_two_flag = True
+                print("sub_two_flag = ", sub_two_flag)
+
+            if third_subject == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                third_grade_idx = possible_grades.index(third_grade[0][0])
+
+                if third_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                elif third_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (third_grade_idx + 1)
+                else:
+                    grade_score = -1
+
+                sub_three_flag = True
+
+            if other_subject is not None and other_subject == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'A':
+
+                req_check_counter += 1
+
+                other_grade_idx = possible_grades.index(other_grade[0][0])
+
+                if other_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                elif other_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (other_grade_idx + 1)
+                else:
+                    grade_score = -1
+
+                sub_other_flag = True
+
+            if first_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                first_gcse_grade_idx = possible_gcse_grades.index(first_gcse_grade[0][0])
+
+                print("first_gcse_grade_idx = ", first_gcse_grade_idx)
+
+                if first_gcse_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("first_gcse_grade_idx == req_four_grad_idx")
+                elif first_gcse_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (first_gcse_grade_idx + 1)
+                    print("first_gcse_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if second_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
+
+                print("Enters gcse check for Mathematics")
+
+                req_check_counter += 1
+
+                second_gcse_grade_idx = possible_gcse_grades.index(second_gcse_grade[0][0])
+
+                print("second_gcse_grade_idx = ", second_gcse_grade_idx)
+
+                if second_gcse_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("second_gcse_grade_idx == req_four_grad_idx")
+                elif second_gcse_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (second_gcse_grade_idx + 1)
+                    print("second_gcse_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if third_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                third_gcse_grade_idx = possible_gcse_grades.index(third_gcse_grade[0][0])
+
+                print("third_gcse_grade_idx = ", third_gcse_grade_idx)
+
+                if third_gcse_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("third_gcse_grade_idx == req_four_grad_idx")
+                elif third_gcse_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (third_gcse_grade_idx + 1)
+                    print("third_gcse_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fourth_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fourth_gcse_grade_idx = possible_gcse_grades.index(fourth_gcse_grade[0][0])
+
+                print("fourth_gcse_grade_idx = ", fourth_gcse_grade_idx)
+
+                if fourth_gcse_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("fourth_gcse_grade_idx == req_four_grad_idx")
+                elif fourth_gcse_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (fourth_gcse_grade_idx + 1)
+                    print("fourth_gcse_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+            if fifth_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
+
+                req_check_counter += 1
+
+                fifth_gcse_grade_idx = possible_gcse_grades.index(fifth_gcse_grade[0][0])
+
+                print("fifth_gcse_grade_idx = ", fifth_gcse_grade_idx)
+
+                if fifth_gcse_grade_idx == req_four_grad_idx:
+                    grade_score += 1
+                    print("fifth_gcse_grade_idx == req_four_grad_idx")
+                elif fifth_gcse_grade_idx < req_four_grad_idx:
+                    # gets the difference between the 2 grades
+                    grade_score += (req_four_grad_idx + 1) - (fifth_gcse_grade_idx + 1)
+                    print("fifth_gcse_grade_idx < req_four_grad_idx")
+                else:
+                    grade_score = -1
+                    print("grade set to -1")
+
+        if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None
+             and req_sub_three_check[0][0] is not None and req_sub_four_check[0][0] is not None)
+                and req_check_counter < 4):
+            sub_one_flag = True
+            sub_two_flag = True
+            sub_three_flag = True
+            sub_other_flag = True
+            grade_score = -1
+
+        if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None
+             and req_sub_three_check[0][0] is not None) and req_check_counter < 3):
+            sub_one_flag = True
+            sub_two_flag = True
+            sub_three_flag = True
+            sub_other_flag = True
+            grade_score = -1
+
+        if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None) and req_check_counter < 2):
+            sub_one_flag = True
+            sub_two_flag = True
+            sub_three_flag = True
+            sub_other_flag = True
+            grade_score = -1
+
+        if (req_sub_one_check[0][0] is not None and req_check_counter < 1):
             sub_one_flag = True
             sub_two_flag = True
             sub_three_flag = True
