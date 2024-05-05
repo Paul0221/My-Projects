@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Overwrite Personal Statement Score</title>
+</head>
+<body>
+    <h2> Please enter the new score you wish to score this personal statement </h2>
+    <form method="post" action="/submit_overwrite_score">
+        <input type="hidden" name="app_id" value="{{ app_id }}">
+        <input type="number" id="new_ps_score" name="new_ps_score" min="-1" max="100" />
+        <button type="submit"> Submit new score </button>
+    </form><br> <br>
+    <textarea id="personal_statement" name="personal_statement" maxlength="4000" rows="30" cols="50" readonly style="width: 100%;"> {{ personal_statement }} </textarea> <br> <br>
+
+</body>
+</html>

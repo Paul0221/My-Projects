@@ -1,0 +1,3 @@
+- set number of applicants accepted
+- ability to allow human to read ps when ties occur
+- ability to approve ps if disapproved then admin reads ps manually and enters new score

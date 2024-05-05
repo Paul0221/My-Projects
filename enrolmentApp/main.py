@@ -94,6 +94,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
     possible_grades = ["A*", "A", "B", "C", "D", "E", "U"]
     possible_gcse_grades = ["9", "8", "7", "6", "5", "4", "3", "2", "1"]
+    comments = 'None'
     grade_score = 0
     sub_one_flag = False
     sub_two_flag = False
@@ -164,6 +165,11 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                    " FROM sys.required_subjects "
                    "WHERE id = %s", (req_sub_four_check[0][0],))
     req_sub_four_level = cursor.fetchall()
+
+    cursor.execute("SELECT IFNULL(max_course_size, 0) AS max_course_size "
+                   " FROM sys.uni_courses "
+                   "WHERE uni_id = %s AND course_id = %s", (select_uni, select_course))
+    course_size = cursor.fetchall()
 
     print("req_sub_one_check = ", req_sub_one_check[0][0])
     print("req_sub_two_check = ", req_sub_two_check[0][0])
@@ -247,6 +253,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     print("first_grade_idx < req_one_grad_idx")
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
                     print("grade set to -1")
 
                 sub_one_flag = True
@@ -271,6 +278,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
@@ -288,6 +296,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_one_grad_idx + 1) - (third_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
                 sub_three_flag = True
 
@@ -304,6 +313,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_one_grad_idx + 1) - (other_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
                 sub_other_flag = True
 
@@ -325,6 +335,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
             if second_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
 
@@ -344,6 +355,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
             if third_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
 
@@ -363,6 +375,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
             if fourth_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
 
@@ -382,6 +395,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
             if fifth_gcse == req_sub_one_check[0][0] and req_sub_one_level[0][0] == 'G':
 
@@ -401,6 +415,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing first required grade (', req_sub_one_check[0][0], ')'
 
         if req_sub_two_check[0][0] != "None" and grade_score != -1:
 
@@ -435,6 +450,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade score set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
                 sub_one_flag = True
                 print("sub_one_flag = ", sub_one_flag)
@@ -459,6 +475,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
@@ -476,6 +493,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_two_grad_idx + 1) - (third_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
                 sub_three_flag = True
 
@@ -492,6 +510,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_two_grad_idx + 1) - (other_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
                 sub_other_flag = True
 
@@ -513,6 +532,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
             if second_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
 
@@ -532,6 +552,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
             if third_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
 
@@ -551,6 +572,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
             if fourth_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
 
@@ -570,6 +592,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
             if fifth_gcse == req_sub_two_check[0][0] and req_sub_two_level[0][0] == 'G':
 
@@ -589,6 +612,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing second required grade (', req_sub_two_check[0][0], ')'
 
         # third subject check
 
@@ -633,6 +657,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade score set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
                 sub_one_flag = True
                 print("sub_one_flag = ", sub_one_flag)
@@ -657,6 +682,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
@@ -674,6 +700,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_three_grad_idx + 1) - (third_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
                 sub_three_flag = True
 
@@ -690,6 +717,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_three_grad_idx + 1) - (other_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
                 sub_other_flag = True
 
@@ -713,6 +741,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
             if second_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
 
@@ -732,6 +761,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
             if third_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
 
@@ -751,6 +781,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
             if fourth_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
 
@@ -770,6 +801,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
             if fifth_gcse == req_sub_three_check[0][0] and req_sub_three_level[0][0] == 'G':
 
@@ -789,6 +821,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing third required grade (', req_sub_three_check[0][0], ')'
 
         # fourth subject check
 
@@ -825,6 +858,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade score set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
                 sub_one_flag = True
                 print("sub_one_flag = ", sub_one_flag)
@@ -849,6 +883,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
                 sub_two_flag = True
                 print("sub_two_flag = ", sub_two_flag)
@@ -866,6 +901,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_four_grad_idx + 1) - (third_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
                 sub_three_flag = True
 
@@ -882,6 +918,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     grade_score += (req_four_grad_idx + 1) - (other_grade_idx + 1)
                 else:
                     grade_score = -1
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
                 sub_other_flag = True
 
@@ -903,6 +940,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
             if second_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
 
@@ -924,6 +962,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
             if third_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
 
@@ -943,6 +982,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
             if fourth_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
 
@@ -962,6 +1002,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
             if fifth_gcse == req_sub_four_check[0][0] and req_sub_four_level[0][0] == 'G':
 
@@ -981,6 +1022,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                 else:
                     grade_score = -1
                     print("grade set to -1")
+                    comments = 'Applicant missing fourth required grade (', req_sub_four_check[0][0], ')'
 
         if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None
              and req_sub_three_check[0][0] is not None and req_sub_four_check[0][0] is not None)
@@ -990,6 +1032,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
             sub_three_flag = True
             sub_other_flag = True
             grade_score = -1
+            comments = 'Applicant missing at least one of the required subjects'
 
         if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None
              and req_sub_three_check[0][0] is not None) and req_check_counter < 3):
@@ -998,6 +1041,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
             sub_three_flag = True
             sub_other_flag = True
             grade_score = -1
+            comments = 'Applicant missing at least one of the required subjects'
 
         if ((req_sub_one_check[0][0] is not None and req_sub_two_check[0][0] is not None) and req_check_counter < 2):
             sub_one_flag = True
@@ -1005,6 +1049,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
             sub_three_flag = True
             sub_other_flag = True
             grade_score = -1
+            comments = 'Applicant missing at least one of the required subjects'
 
         if (req_sub_one_check[0][0] is not None and req_check_counter < 1):
             sub_one_flag = True
@@ -1012,6 +1057,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
             sub_three_flag = True
             sub_other_flag = True
             grade_score = -1
+            comments = 'Applicant missing at least one of the required subjects'
 
         while sub_one_flag is False or sub_two_flag is False or sub_three_flag is False or sub_other_flag is False:
             print("Flag check:")
@@ -1040,7 +1086,8 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     elif first_grade_idx < req_grade_one_idx:
                         grade_score += (req_grade_one_idx + 1) - (first_grade_idx + 1)
                     else:
-                        grade_score += -1 # add -1 rather than setting it to automatically be rejected
+                        grade_score += -1
+                        comments = 'Applicant missing minimum required grades'
 
                 sub_one_flag = True
 
@@ -1066,6 +1113,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                         grade_score += (req_grade_two_idx + 1) - (second_grade_idx + 1)
                     else:
                         grade_score += -1
+                        comments = 'Applicant missing minimum required grades'
 
                 sub_two_flag = True
 
@@ -1100,6 +1148,7 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                     else:
                         grade_score += -1
                         print("Grade score set to -1")
+                        comments = 'Applicant missing minimum required grades'
 
                 sub_three_flag = True
 
@@ -1127,8 +1176,11 @@ async def submit_application(request: Request, first_name: str = Form(...), last
                         grade_score += (req_grade_four_idx + 1) - (other_grade_idx + 1)
                     else:
                         grade_score += -1
+                        comments = 'Applicant missing minimum required grades'
 
                 sub_other_flag = True
+
+        print("Comments = ", comments)
 
         cursor.execute("SELECT id "
                        " FROM sys.uni_courses "
@@ -1173,15 +1225,26 @@ async def submit_application(request: Request, first_name: str = Form(...), last
 
         if grade_score == -1:
             total_score = -1
+        elif statement_score == 0:
+            total_score = -1
+            comments = 'Applicant had no key phrases in personal statement'
         else:
             total_score = grade_score + statement_score
 
+        print("Comments = ", comments)
+
+        if comments == 'None':
+            comments = None
+
+        print("Comments = ", comments)
+
         cursor.execute("INSERT INTO sys.uni_application (first_name, last_name, email_address, uni_id, course_id, "
                        "first_grade, second_grade, third_grade, other_grade, grade_score, personal_statement, ps_score, "
-                       "total_score, approved_mkr) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                       "total_score, approved_mkr, comments) "
+                       "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                        (first_name, last_name, email_address, select_uni, select_course, first_grade, second_grade,
                         third_grade, other_grade, grade_score, personal_statement, statement_score, total_score,
-                        approved))
+                        approved, comments))
         conn.commit()
 
         # first find the average of total_score
@@ -1213,6 +1276,12 @@ async def submit_application(request: Request, first_name: str = Form(...), last
         cursor.execute("UPDATE sys.uni_application SET approved_mkr = 'C' WHERE total_score >= %s AND (grade_score <= %s OR ps_score <= %s)",
                        (avg_total_val, avg_grade_val, avg_ps_val))
         conn.commit()
+
+        if course_size[0][0] != 0:
+            # set all applicants that are below the max course size who haven't been rejected yet to 'P' (potential)
+            cursor.execute("UPDATE sys.uni_application SET approved_mkr = 'P', comments = 'Candidate may get an offer if space opens up' WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY total_score DESC, grade_score DESC, ps_score DESC) AS position FROM sys.uni_application WHERE approved_mkr != 'N' ORDER BY total_score DESC, grade_score DESC, ps_score DESC) unap WHERE position > %s) ",
+                           (course_size[0][0],))
+            conn.commit()
 
         cursor.close()
 
@@ -1329,7 +1398,7 @@ async def view_applications(request: Request):
 
     cursor = conn.cursor()
 
-    cursor.execute("SELECT unap.first_name, unap.last_name, unap.email_address, uni.university_name AS university, CONCAT(cour.qualification_code, ' ', cour.course_name) AS course_name, unap.grade_score, unap.ps_score, unap.total_score, CASE WHEN approved_mkr = 'N' THEN 'Rejected' WHEN approved_mkr = 'C' THEN 'Conditional' WHEN approved_mkr = 'U' THEN 'Unconditional' WHEN approved_mkr = 'T' THEN 'To Be Confirmed' END AS approved "
+    cursor.execute("SELECT unap.first_name, unap.last_name, unap.email_address, uni.university_name AS university, CONCAT(cour.qualification_code, ' ', cour.course_name) AS course_name, unap.grade_score, unap.ps_score, unap.total_score, CASE WHEN approved_mkr = 'N' THEN 'Rejected' WHEN approved_mkr = 'C' THEN 'Conditional' WHEN approved_mkr = 'U' THEN 'Unconditional' WHEN approved_mkr = 'T' THEN 'To Be Confirmed' WHEN approved_mkr = 'P' THEN 'Potential Candidate' END AS approved, unap.comments, unap.id, unap.personal_statement "
                    "FROM sys.uni_application unap "
                    "LEFT JOIN sys.universities uni ON unap.uni_id = uni.id "
                    "LEFT JOIN sys.courses cour ON unap.course_id = cour.id")
@@ -1424,4 +1493,25 @@ Technological advancements take place around us everyday, from the evolution of 
     return {"message": "Success: required fields are correctly processed"}
     # else:
         # return {"message": "Error: there is 1 or more fields that didn't process correctly"}
+<<<<<<< HEAD
 >>>>>>> 1412968 (Test of rake_nltk able to process sample statement into keyphrases)
+=======
+
+# write code for get request after overwriting score
+
+@app.post("/view_applications")
+async def view_applications(request: Request, app_id: int = Form(...), personal_statement: str = Form(...)):
+
+    return templates.TemplateResponse("overwrite_score.html", {"request": request, "app_id": app_id,
+                                                               "personal_statement": personal_statement})
+
+# write code for post request after overwriting score
+
+@app.post("/submit_overwrite_score")
+async def submit_overwrite_score(request: Request, app_id: int = Form(...), new_ps_score: int = Form(...)):
+
+    cursor = conn.cursor()
+    cursor.execute("UPDATE sys.uni_application SET ps_score = %s WHERE id = %s", (new_ps_score, app_id))
+    conn.commit()
+    return templates.TemplateResponse("admin_home.html", {"request": request, "app_id": app_id})
+>>>>>>> 06dd013 (Added features to system that Ammar suggested (see enhancements.txt as well as the system adding comments to rejected and potential applicants (potential applicants being applicants who met the requirements but due to course size limitations cannot be initially accepted onto the course until more space is made))
