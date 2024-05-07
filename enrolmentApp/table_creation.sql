@@ -20,10 +20,8 @@ CREATE TABLE sys.courses (
 );
 
 INSERT INTO sys.courses (course_name, qualification_code) VALUES ('Computer Science', 'BSc');
-
-SELECT * FROM sys.uni_courses;
-
-DROP TABLE sys.uni_courses;
+INSERT INTO sys.courses (course_name, qualification_code) VALUES ('Computer Science', 'MEng');
+INSERT INTO sys.courses (course_name, qualification_code) VALUES ('Mathematics', 'BSc');
 
 CREATE TABLE sys.uni_courses (
   id int PRIMARY KEY auto_increment,
@@ -38,15 +36,15 @@ CREATE TABLE sys.uni_courses (
   req_sub_one_grade varchar(5),
   req_subject_two int,
   req_sub_two_grade varchar(5),
+  max_course_size int,
   FOREIGN KEY (uni_id) references universities(id),
   FOREIGN KEY (course_id) references courses(id),
   FOREIGN KEY (req_subject_one) references required_subjects(id),
   FOREIGN KEY (req_subject_two) references required_subjects(id)
 );
 
-INSERT INTO sys.uni_courses (uni_id, course_id, active_mkr, req_grade_one, req_grade_two, req_grade_three, req_subject_one, req_sub_one_grade, req_subject_two, req_sub_two_grade) VALUES (1, 1, 'Y', 'A', 'A', 'A', 1, 'A', 2, 'A');
-
-DELETE FROM sys.uni_courses WHERE id = 1;
+INSERT INTO sys.uni_courses (uni_id, course_id, active_mkr, req_grade_one, req_grade_two, req_grade_three, req_subject_one, req_sub_one_grade, req_subject_two, req_sub_two_grade, req_subject_three, req_sub_three_grade, req_subject_four, req_sub_four_grade, max_course_size) VALUES (1, 1, 'Y', 'A', 'A', 'A', 1, 'A', 2, 'A', 3, '6', 4, '4', 300); # BSc Computer Science
+INSERT INTO sys.uni_courses (uni_id, course_id, active_mkr, req_grade_one, req_grade_two, req_grade_three, req_subject_one, req_sub_one_grade, req_subject_two, req_sub_two_grade, req_subject_three, req_sub_three_grade, req_subject_four, req_sub_four_grade, max_course_size) VALUES (1, 2, 'Y', 'A', 'A', 'A', 1, 'A', 2, 'A', 3, '6', 4, '4', 100); # MEng Computer Science
 
 CREATE TABLE sys.required_subjects(
   id int PRIMARY KEY auto_increment,
@@ -56,11 +54,20 @@ CREATE TABLE sys.required_subjects(
 
 INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('Mathematics', 'A');
 INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('Computer Science', 'A');
+INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('Mathematics', 'G');
+INSERT INTO sys.required_subjects (subject_name, subject_level) VALUES ('English Language', 'G');
 
-SELECT * FROM sys.uni_course_keyterms;
+# BSc Computer Science keyterms
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('skilled programmer', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('creative thinker', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('problem solving', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('technical skills', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('algorithm design', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('programming', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('collaborative', 1);
+INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('project management', 1);
 
-DELETE FROM sys.uni_course_keyterms WHERE uni_course_id = 1;
-
+#MEng Computer Science keyterms
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('skilled programmer', 2);
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('creative thinker', 2);
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('problem solving', 2);
@@ -69,6 +76,8 @@ INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('algorithm
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('programming', 2);
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('collaborative', 2);
 INSERT INTO sys.uni_course_keyterms (keyterms, uni_course_id) VALUES ('project management', 2);
+
+
 
 CREATE TABLE sys.uni_application (
   id int PRIMARY KEY auto_increment,
